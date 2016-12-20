@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+
+const cmd = process.argv[0];
+const file = process.argv[1];
+const target = process.argv[2];
+const verbose = !!process.argv[3];
+
+if (verbose) {
+  console.log('cmd ' + cmd);
+  console.log('file ' + file);
+  console.log('target ' + target);
+  console.log('verbose ' + verbose);
+}
+
+const runner = require('./compiler/runner');
+
+const target_text = fs.readFileSync(path.join(__dirname, target), 'utf8');
+
+runner(target_text, verbose);
+
