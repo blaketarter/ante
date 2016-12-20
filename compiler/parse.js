@@ -1,7 +1,7 @@
 const root = require('./root');
 const types = require('./types');
 const actions = require('./actions');
-const { func_watcher, str_watcher } = require('./watchers');
+const { func_watcher, str_watcher, int_watcher } = require('./watchers');
 const { symbols, rev_symbols } = require('./symbols');
 
 function split_into_symbols(text) {
@@ -39,6 +39,7 @@ function split_into_symbols(text) {
 function actions_from_symbols(symbols_arr) {
   const func_watcher_instance = func_watcher();
   const str_watcher_instance = str_watcher();
+  const int_watcher_instance = int_watcher();
 
   let actions = [[]];
   let lineNum = 1;
@@ -63,6 +64,18 @@ function actions_from_symbols(symbols_arr) {
     }
   
     {
+      let { is_int_handled, action } = int_watcher_instance(part);
+
+      if (action) {
+        actions[lineNum - 1].push(action);
+      }
+
+      if (is_int_handled) {
+        continue;
+      }
+    }
+  
+    {
       let { is_func_handled, action } = func_watcher_instance(part);
 
       if (action) {
@@ -73,6 +86,8 @@ function actions_from_symbols(symbols_arr) {
         continue;
       }
     }
+
+    
   }
 
   return actions;

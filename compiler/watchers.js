@@ -111,4 +111,74 @@ function str_watcher(part) {
   }
 }
 
-module.exports = { func_watcher, str_watcher, };
+function int_watcher(part) {
+  let found_int = false;
+  let int = '';
+  let is_searching = true;
+
+  return function(part) {
+    part = part.trim();
+
+    if (
+      is_searching &&
+      !(part in rev_symbols) &&
+      (part in types.int.digits)
+    ) {
+      found_int = true;
+      is_searching = false;
+      int += part;
+
+      return { is_int_handled: true, action: false, };
+    }
+
+    if (
+      is_searching &&
+      !(part in rev_symbols) &&
+      !(part in types.int.digits) &&
+      part.length > 1
+    ) {
+      for (let char of part) {
+        if (
+          (char in rev_symbols) ||
+          !(char in types.int.digits)
+        ) {
+          return { is_int_handled: false, action: false, };
+        }
+      }
+
+      found_int = true;
+      is_searching = false;
+      int += part;
+
+      return { is_int_handled: true, action: false, };
+    }
+
+    if (
+      !is_searching &&
+      found_int &&
+      ((part in rev_symbols) || !(part in types.int.digits))
+    ) {
+      let int_to_return = parseInt(int);
+
+      found_int = false;
+      is_searching = true;
+      int = '';
+      return { is_int_handled: false, action: { type: actions.VALUE, payload: int_to_return } };
+    }
+
+    if (
+      !is_searching &&
+      found_int &&
+      !(part in rev_symbols) &&
+      (part in types.int.digits)
+    ) {
+      int += part;
+
+      return { is_int_handled: true, action: false, };
+    }
+
+    return { is_int_handled: false, action: false, };
+  }
+}
+
+module.exports = { func_watcher, str_watcher, int_watcher };
