@@ -6,6 +6,8 @@ const symbols = {
   CLOSE_PAREN: types.func.delimiter_close, //)
   SEMI: ';',
   COMMA: ',',
+  SLASH: '/',
+  NEWLINE: '\n',
 };
 
 const rev_symbols = {};

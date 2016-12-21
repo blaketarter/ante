@@ -3,6 +3,71 @@ const types = require('./types');
 const { symbols, rev_symbols } = require('./symbols');
 const actions = require('./actions');
 
+function comment_watcher(part) {
+  let found_comment = false;
+  let found_slash = false;
+  let found_slash_amount = 0;
+  let comment = '';
+  let is_searching = true;
+
+  return function(part) {
+    if (
+      is_searching &&
+      !found_slash &&
+      part === rev_symbols[types.comment.single_line_delimiter_open]
+    ) {
+      found_slash = true;
+      found_slash_amount += 1;
+
+      return { is_comment_handled: false, action: false, };
+    }
+
+    if (found_slash && part === rev_symbols[types.comment.single_line_delimiter_open]) {
+      found_slash_amount += 1;
+
+      if (found_slash_amount === types.comment.single_line_delimiter_amount) {
+        found_comment = true;
+        is_searching = false;
+        found_slash = false;
+
+        return { is_comment_handled: true, action: false, };
+      }
+
+      return { is_comment_handled: false, action: false, };
+    } else if (found_slash) {
+      found_slash = false;
+      found_slash_amount = 0;
+
+      return { is_comment_handled: false, action: false, };
+    }
+
+    if (
+      !is_searching &&
+      found_comment &&
+      part !== rev_symbols[types.comment.single_line_delimiter_close]
+    ) {
+      comment += part;
+
+      return { is_comment_handled: true, action: false, };
+    }
+
+    if (
+      !is_searching &&
+      found_comment &&
+      part === rev_symbols[types.comment.single_line_delimiter_close]
+    ) {
+      found_comment = false;
+      is_searching = true;
+      found_slash = false;
+      found_slash_amount = 0;
+
+      return { is_comment_handled: true, action: false, };
+    }
+
+    return { is_comment_handled: false, action: false, };
+  }
+}
+
 function func_watcher() {
   let found_method = false;
   let method = null;
@@ -11,6 +76,8 @@ function func_watcher() {
   let args = [];
 
   return function(part) {
+    part = part.trim();
+    
     // is the part a method in the root scope
     if (is_searching && part in root) {
       method = part;
@@ -181,4 +248,4 @@ function int_watcher(part) {
   }
 }
 
-module.exports = { func_watcher, str_watcher, int_watcher };
+module.exports = { comment_watcher, func_watcher, str_watcher, int_watcher };

@@ -1,8 +1,10 @@
 log(`hello world`);
-log(`foo bar`);
 foo();
 log(`foo`, `bar`);
 argc(`f`, `o`, `o`);
 log(5);
 square(2);
 sum(20, 6);
+log(`fizz`); log(`buzz`);
+// log(`this should not log`);
+log(`this should log`) // log(`but this should not`);

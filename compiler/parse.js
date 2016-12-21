@@ -1,7 +1,7 @@
 const root = require('./root');
 const types = require('./types');
 const actions = require('./actions');
-const { func_watcher, str_watcher, int_watcher } = require('./watchers');
+const { comment_watcher, func_watcher, str_watcher, int_watcher } = require('./watchers');
 const { symbols, rev_symbols } = require('./symbols');
 
 function split_into_symbols(text) {
@@ -9,10 +9,6 @@ function split_into_symbols(text) {
   let is_last_char_symbol = false
 
   for (let char of text) {
-    if (char === '\n') {
-      continue;
-    }
-
     if (char in rev_symbols) {
       is_last_char_symbol = true;
       symbols_arr.push(rev_symbols[char]);
@@ -37,6 +33,7 @@ function split_into_symbols(text) {
 }
 
 function actions_from_symbols(symbols_arr) {
+  const comment_watcher_instance = comment_watcher();
   const func_watcher_instance = func_watcher();
   const str_watcher_instance = str_watcher();
   const int_watcher_instance = int_watcher();
@@ -49,6 +46,18 @@ function actions_from_symbols(symbols_arr) {
       lineNum += 1;
       actions.push([]);
       continue;
+    }
+  
+    {
+      let { is_comment_handled, action } = comment_watcher_instance(part);
+
+      if (action) {
+        actions[lineNum - 1].push(action);
+      }
+
+      if (is_comment_handled) {
+        continue;
+      }
     }
   
     {
@@ -86,8 +95,6 @@ function actions_from_symbols(symbols_arr) {
         continue;
       }
     }
-
-    
   }
 
   return actions;
